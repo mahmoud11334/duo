@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            direction: rtl;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .intro-screen {
+            background: #000;
+            text-align: center;
+        }
+
+        .intro-screen p {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1.5;
+            padding: 20px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main-menu {
+            background: linear-gradient(135deg, #000080, #ffa500, #000000);
+            background-size: 400% 400%;
+            animation: gradient 10s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 0% 50%; }
+            75% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .game-title {
+            font-size: 3.5rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
+        }
+
+        .button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: #fff;
+            padding: 15px 40px;
+            margin: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .button:hover {
+            background: #fff;
+            color: #000;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .button:active {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: rgba(51, 51, 51, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            animation: popIn 0.5s ease;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-content:hover {
+            transform: scale(1);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #fff;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .close:hover {
+            color: #ff0000;
+            transform: rotate(90deg);
+        }
+
+        .countdown {
+            font-size: 2.5rem;
+            margin-top: 20px;
+            font-weight: 700;
+            color: #ffd700;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .game-screen {
+            background: linear-gradient(135deg, #1e1e1e, #333333);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        .score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            animation: fadeIn 0.5s;
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            animation: fadeIn 0.5s;
+        }
+
+        .circle {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            animation: popInCircle 0.3s;
+        }
+
+        @keyframes popInCircle {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .circle:hover {
+            transform: scale(1.2);
+        }
+
+        .color-box {
+            width: 120px;
+            height: 120px;
+            margin: 30px auto;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            transition: background 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            .game-title {
+                font-size: 2.5rem;
+            }
+
+            .button {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+
+            .intro-screen p {
+                font-size: 1.2rem;
+            }
+
+            .modal-content p {
+                font-size: 1rem;
+            }
+
+            .circle {
+                width: 50px;
+                height: 50px;
+            }
+
+            .color-box {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="intro1" class="screen intro-screen active">
+        <p>عزيزي اللاعب لا تجعل الألعاب والمتعة تلهيك عن الصلاة والعبادة</p>
+    </div>
+    <div id="intro2" class="screen intro-screen">
+        <p>هذه اللعبة للعرب فقط</p>
+    </div>
+    <div id="main-menu" class="screen main-menu">
+        <h1 class="game-title">Duo</h1>
+        <button class="button" onclick="showModal('how-to-play')">طريقة اللعب</button>
+        <button class="button" onclick="window.open('https://mahmoud11334.github.io/cr/', '_blank')">المزيد</button>
+        <button class="button" onclick="navigate('navigation')">العب</button>
+    </div>
+    <div id="navigation" class="screen">
+        <h1 class="game-title">اللعب</h1>
+        <button class="button" onclick="navigate('duo')">من نفس الجهاز</button>
+        <button class="button" onclick="navigate('remote')">كل واحد من جهازه</button>
+        <button class="button" onclick="showModal('online-soon')">أون لاين</button>
+    </div>
+    <div id="duo" class="screen">
+        <p>لم يتم تجهيز هذا الوضع بعد</p>
+        <button class="button" onclick="navigate('main-menu')">عد</button>
+    </div>
+    <div id="remote" class="screen">
+        <h1 class="game-title">Duo</h1>
+        <button class="button" onclick="showModal('remote-how-to')">طريقة اللعب</button>
+        <button class="button" onclick="showGameSelection()">اختر اللعبة</button>
+        <button class="button" onclick="navigate('main-menu')">عد</button>
+    </div>
+    <div id="bll" class="screen">
+        <h1 class="game-title">Duo</h1>
+        <button class="button" onclick="showBllStart()">ابدأ اللعب</button>
+        <button class="button" onclick="navigate('remote')">عد</button>
+        <button class="button" onclick="window.open('https://mahmoud11334.github.io/TheBall.lastV/', '_blank')">انتقل</button>
+    </div>
+    <div id="fa22" class="screen">
+        <h1 class="game-title">Duo</h1>
+        <button class="button" onclick="showModal('fa22-how-to')">طريقة اللعب</button>
+        <button class="button" onclick="showFa22Start()">ابدأ</button>
+    </div>
+    <div id="fa2" class="screen game-screen">
+        <div class="score">Score: <span id="fa2-score">0</span></div>
+        <div class="timer">الوقت: <span id="fa2-timer">60</span></div>
+    </div>
+    <div id="col22" class="screen">
+        <h1 class="game-title">Duo</h1>
+        <button class="button" onclick="showModal('col22-how-to')">طريقة اللعب</button>
+        <button class="button" onclick="showCol22Start()">ابدأ</button>
+    </div>
+    <div id="col2" class="screen game-screen">
+        <div class="score">Score: <span id="col2-score">0</span></div>
+        <div class="timer">الوقت: <span id="col2-timer">60</span></div>
+        <div id="color-box" class="color-box"></div>
+        <button id="color-btn1" class="button"></button>
+        <button id="color-btn2" class="button"></button>
+    </div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="modal-text"></p>
+            <div id="countdown" class="countdown"></div>
+        </div>
+    </div>
+    <div id="game-selection" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <button class="button" onclick="navigate('fa22'); closeModal();">Fast</button>
+            <button class="button" onclick="navigate('col22'); closeModal();">Cool</button>
+            <button class="button" onclick="navigate('bll'); closeModal();">Ball</button>
+        </div>
+    </div>
+    <div id="end-game" class="modal">
+        <div class="modal-content">
+            <p id="end-game-text"></p>
+            <button class="button" onclick="restartGame(); closeModal();">إعادة</button>
+            <button class="button" onclick="navigate('remote'); closeModal();">عد</button>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'intro1';
+        let score = 0;
+        let gameTimer;
+        let circles = [];
+        let colors_en = ['red', 'yellow', 'green', 'blue', 'white', 'pink'];
+        let colors_ar = ['أحمر', 'أصفر', 'أخضر', 'أزرق', 'أبيض', 'وردي'];
+        let currentColorIndex;
+
+        function navigate(screenId) {
+            const current = document.querySelector('.screen.active');
+            if (current) {
+                current.style.opacity = 0;
+                setTimeout(() => {
+                    current.classList.remove('active');
+                    document.getElementById(screenId).classList.add('active');
+                    setTimeout(() => {
+                        document.getElementById(screenId).style.opacity = 1;
+                    }, 50);
+                }, 500);
+            } else {
+                document.getElementById(screenId).classList.add('active');
+                document.getElementById(screenId).style.opacity = 1;
+            }
+            currentScreen = screenId;
+        }
+
+        function showModal(id) {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            const modalText = document.getElementById('modal-text');
+            if (id === 'how-to-play') {
+                modalText.textContent = 'اللعبة تعتمد على الأصدقاء، يمكنك اللعب مع صديقك من نفس الجهاز أو تلعبوا أكثر من 99 شخص، لكن كل واحد من جهاز. ابدأ اللعب واستمتع';
+            } else if (id === 'online-soon') {
+                modalText.textContent = '  قريبا  ';
+            } else if (id === 'remote-how-to') {
+                modalText.textContent = '  سهلة جدا، اختر أنت وصاحبك نفس اللعبة واللي يجيب فيها سكور أعلى أو وقت أعلى هو اللي يكسب، بس كدا  ';
+            } else if (id === 'fa22-how-to') {
+                modalText.textContent = 'طريقة اللعب سهلة جدا جدا جدا، هتظهر ليك دوائر، دوس عليها بسرعة قبل ما تختفي، بس خلي بالك أوعى تدوس على أي حاجة إلا اللون الأخضر، يلا اتحداك اصحابك وكن أنت الأفضل';
+            } else if (id === 'col22-how-to') {
+                modalText.textContent = 'طريقة اللعب سهلة جدا جدا جدا، هيظهر لك لون على الشاشة واختاره صح، بس كدا، أوعى تختاره غلط ها';
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            const gameSelection = document.getElementById('game-selection');
+            const endGame = document.getElementById('end-game');
+            modal.classList.remove('active');
+            gameSelection.classList.remove('active');
+            endGame.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                gameSelection.style.display = 'none';
+                endGame.style.display = 'none';
+            }, 300);
+            clearInterval(window.countdownInterval);
+        }
+
+        function showGameSelection() {
+            const gameSelection = document.getElementById('game-selection');
+            gameSelection.style.display = 'flex';
+            setTimeout(() => gameSelection.classList.add('active'), 10);
+        }
+
+        function showBllStart() {
+            const modal = document.getElementById('modal');
+            const modalText = document.getElementById('modal-text');
+            const countdown = document.getElementById('countdown');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            modalText.textContent = 'عليك بدء اللعبة معا مع أصدقائك وكن أنت الأفضل وطريقة اللعب سهلة جدا، أعلى واحد فيكم يجيب وقت هو الكسبان';
+            let time = 15;
+            countdown.textContent = time;
+            window.countdownInterval = setInterval(() => {
+                time--;
+                countdown.textContent = time;
+                if (time <= 0) {
+                    clearInterval(window.countdownInterval);
+                    modalText.textContent = 'انتهي العد التنازلي..في حاله عدم الانتقال اضغط علي زر انتقل';
+                }
+            }, 1000);
+        }
+
+        function showFa22Start() {
+            const modal = document.getElementById('modal');
+            const modalText = document.getElementById('modal-text');
+            const countdown = document.getElementById('countdown');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            modalText.textContent = 'تأكد من أنك تضغط أنت وصديقك في نفس الوقت';
+            let time = 6;
+            countdown.textContent = time;
+            window.countdownInterval = setInterval(() => {
+                time--;
+                countdown.textContent = time;
+                if (time <= 0) {
+                    clearInterval(window.countdownInterval);
+                    closeModal();
+                    navigate('fa2');
+                    startFa2Game();
+                }
+            }, 1000);
+        }
+
+        function showCol22Start() {
+            const modal = document.getElementById('modal');
+            const modalText = document.getElementById('modal-text');
+            const countdown = document.getElementById('countdown');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            modalText.textContent = 'تأكد من أنك تضغط أنت وصديقك في نفس الوقت';
+            let time = 6;
+            countdown.textContent = time;
+            window.countdownInterval = setInterval(() => {
+                time--;
+                countdown.textContent = time;
+                if (time <= 0) {
+                    clearInterval(window.countdownInterval);
+                    closeModal();
+                    navigate('col2');
+                    startCol2Game();
+                }
+            }, 1000);
+        }
+
+        function startFa2Game() {
+            let time = 3;
+            const modal = document.getElementById('modal');
+            const modalText = document.getElementById('modal-text');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            modalText.textContent = time;
+            window.countdownInterval = setInterval(() => {
+                time--;
+                modalText.textContent = time;
+                if (time <= 0) {
+                    clearInterval(window.countdownInterval);
+                    closeModal();
+                    score = 0;
+                    document.getElementById('fa2-score').textContent = score;
+                    startFa2Timer();
+                    spawnCircles();
+                }
+            }, 1000);
+        }
+
+        function startFa2Timer() {
+            let time = 60;
+            document.getElementById('fa2-timer').textContent = time;
+            clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                time--;
+                document.getElementById('fa2-timer').textContent = time;
+                if (time <= 0) {
+                    clearInterval(gameTimer);
+                    circles.forEach(circle => circle.remove());
+                    circles = [];
+                    const endGame = document.getElementById('end-game');
+                    endGame.style.display = 'flex';
+                    setTimeout(() => endGame.classList.add('active'), 10);
+                    document.getElementById('end-game-text').textContent = `قارن بينك وبين صاحبك، الأكثر فيكم هو الكسبان\nScore: ${score}`;
+                }
+            }, 1000);
+        }
+
+        function spawnCircles() {
+            clearInterval(window.spawnInterval);
+            window.spawnInterval = setInterval(() => {
+                if (currentScreen !== 'fa2') {
+                    clearInterval(window.spawnInterval);
+                    return;
+                }
+                const circle = document.createElement('div');
+                circle.classList.add('circle');
+                const isGreen = Math.random() < 0.5;
+                circle.style.background = isGreen ? 'green' : 'red';
+                circle.style.left = `${Math.random() * (window.innerWidth - 60)}px`;
+                circle.style.top = `${Math.random() * (window.innerHeight - 60)}px`;
+                circle.onclick = () => {
+                    if (isGreen) {
+                        score++;
+                    } else {
+                        score--;
+                    }
+                    document.getElementById('fa2-score').textContent = score;
+                    circle.style.opacity = 0;
+                    setTimeout(() => circle.remove(), 200);
+                    circles = circles.filter(c => c !== circle);
+                };
+                document.getElementById('fa2').appendChild(circle);
+                circles.push(circle);
+                const currentTime = parseInt(document.getElementById('fa2-timer').textContent);
+                const disappearTime = currentTime > 30 ? 1000 : 700;
+                setTimeout(() => {
+                    if (circle.parentNode) {
+                        circle.style.opacity = 0;
+                        setTimeout(() => {
+                            circle.remove();
+                            circles = circles.filter(c => c !== circle);
+                        }, 200);
+                    }
+                }, disappearTime);
+            }, 800);
+        }
+
+        function startCol2Game() {
+            let time = 3;
+            const modal = document.getElementById('modal');
+            const modalText = document.getElementById('modal-text');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            modalText.textContent = time;
+            window.countdownInterval = setInterval(() => {
+                time--;
+                modalText.textContent = time;
+                if (time <= 0) {
+                    clearInterval(window.countdownInterval);
+                    closeModal();
+                    score = 0;
+                    document.getElementById('col2-score').textContent = score;
+                    startCol2Timer();
+                    changeColor();
+                }
+            }, 1000);
+        }
+
+        function startCol2Timer() {
+            let time = 60;
+            document.getElementById('col2-timer').textContent = time;
+            clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                time--;
+                document.getElementById('col2-timer').textContent = time;
+                if (time <= 0) {
+                    clearInterval(gameTimer);
+                    const endGame = document.getElementById('end-game');
+                    endGame.style.display = 'flex';
+                    setTimeout(() => endGame.classList.add('active'), 10);
+                    document.getElementById('end-game-text').textContent = `قارن بينك وبين صاحبك، واللي جايب فيكم سكور أعلى هو الكسبان\nScore: ${score}`;
+                }
+            }, 1000);
+        }
+
+        function changeColor() {
+            if (currentScreen !== 'col2') return;
+            currentColorIndex = Math.floor(Math.random() * colors_en.length);
+            const currentColorEn = colors_en[currentColorIndex];
+            const currentColorAr = colors_ar[currentColorIndex];
+            document.getElementById('color-box').style.background = currentColorEn;
+            const btn1 = document.getElementById('color-btn1');
+            const btn2 = document.getElementById('color-btn2');
+            const isHard = parseInt(document.getElementById('col2-timer').textContent) <= 30;
+            const wrongIndex = (currentColorIndex + Math.floor(Math.random() * (colors_en.length - 1) + 1)) % colors_en.length;
+            const wrongColorEn = colors_en[wrongIndex];
+            const wrongColorAr = colors_ar[wrongIndex];
+            const correctBtn = Math.random() < 0.5 ? btn1 : btn2;
+            const wrongBtn = correctBtn === btn1 ? btn2 : btn1;
+
+            if (isHard) {
+                correctBtn.textContent = currentColorAr;
+                correctBtn.style.background = wrongColorEn;
+                correctBtn.style.color = '#000';
+                correctBtn.onclick = () => {
+                    score++;
+                    document.getElementById('col2-score').textContent = score;
+                    changeColor();
+                };
+                wrongBtn.textContent = wrongColorAr;
+                wrongBtn.style.background = currentColorEn;
+                wrongBtn.style.color = '#000';
+                wrongBtn.onclick = () => {
+                    score--;
+                    document.getElementById('col2-score').textContent = score;
+                    changeColor();
+                };
+            } else {
+                correctBtn.textContent = currentColorAr;
+                correctBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                correctBtn.style.color = '#fff';
+                correctBtn.onclick = () => {
+                    score++;
+                    document.getElementById('col2-score').textContent = score;
+                    changeColor();
+                };
+                wrongBtn.textContent = wrongColorAr;
+                wrongBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                wrongBtn.style.color = '#fff';
+                wrongBtn.onclick = () => {
+                    score--;
+                    document.getElementById('col2-score').textContent = score;
+                    changeColor();
+                };
+            }
+            const currentTime = parseInt(document.getElementById('col2-timer').textContent);
+            const changeTime = currentTime > 30 ? 1200 : 1000;
+            setTimeout(changeColor, changeTime);
+        }
+
+        function restartGame() {
+            const endGame = document.getElementById('end-game');
+            endGame.classList.remove('active');
+            setTimeout(() => endGame.style.display = 'none', 300);
+            if (currentScreen === 'fa2') {
+                clearInterval(gameTimer);
+                clearInterval(window.spawnInterval);
+                circles.forEach(circle => circle.remove());
+                circles = [];
+                score = 0;
+                document.getElementById('fa2-score').textContent = score;
+                startFa2Timer();
+                spawnCircles();
+            } else if (currentScreen === 'col2') {
+                clearInterval(gameTimer);
+                document.getElementById('color-box').style.background = '';
+                document.getElementById('color-btn1').textContent = '';
+                document.getElementById('color-btn2').textContent = '';
+                score = 0;
+                document.getElementById('col2-score').textContent = score;
+                startCol2Timer();
+                changeColor();
+            }
+        }
+
+        setTimeout(() => {
+            navigate('intro2');
+            setTimeout(() => navigate('main-menu'), 6000);
+        }, 6000);
+    </script>
+</body>
+</html>
